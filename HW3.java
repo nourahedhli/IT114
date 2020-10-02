@@ -5,12 +5,15 @@ public class Recursion {
 		//if (num > 0) {
 			//return num + sum(num - 1);
 		//}
-		int Sum = 10 ;
-		while (num <0  );{
-		    num = num + (num - Sum );
-		    Sum--;
-		}
-		return Sum;
+		int x = 10 ; 
+		int y = 0; 
+		 for (int i = 0; i < num ; i ++){
+		     
+		     y+=x;
+		     x--;
+		     
+		 }
+		return y;
 	}
 
 	public static void main(String[] args) {
