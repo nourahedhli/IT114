@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry excluding="SocketFolder/|SocketsPart3/|SocketsPart4/" kind="src" path=""/>
-	<classpathentry kind="src" path="SocketFolder"/>
-	<classpathentry kind="src" path="SocketsPart3"/>
-	<classpathentry kind="src" path="SocketsPart4"/>
-	<classpathentry kind="output" path="bin"/>
-</classpath>

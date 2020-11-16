@@ -1,4 +1,4 @@
-package SocketPart6.server;
+package server;
 import java.io.Serializable;
 
 public class Payload implements Serializable {
