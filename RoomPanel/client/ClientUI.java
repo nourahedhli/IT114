@@ -5,6 +5,7 @@ import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -90,6 +91,11 @@ public class ClientUI extends JFrame implements Event {
 		
 		panel.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "sendAction");
 		panel.getActionMap().put("sendAction", new AbstractAction() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				button.doClick();
 			}
@@ -122,6 +128,11 @@ public class ClientUI extends JFrame implements Event {
 		
 		username.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "sendAction");
 		username.getActionMap().put("sendAction", new AbstractAction() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				button.doClick();
 			}
@@ -150,6 +161,11 @@ public class ClientUI extends JFrame implements Event {
 		JButton button = new JButton("Send");
 		text.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "sendAction");
 		text.getActionMap().put("sendAction", new AbstractAction() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				button.doClick();
 			}
@@ -254,7 +270,7 @@ public class ClientUI extends JFrame implements Event {
 	}
 
 	void connect(String host, String port) throws IOException {
-		SocketClient.callbackListener(this);
+		SocketClient.registerCallbackListener(this);
 		SocketClient.connectAndStart(host, port);
 	}
 
@@ -313,5 +329,17 @@ public class ClientUI extends JFrame implements Event {
 		if (ui != null) {
 			log.log(Level.FINE, "Started");
 		}
+	}
+
+	@Override
+	public void onGetRoom(String roomName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onResize(Point p) {
+		// TODO Auto-generated method stub
+		
 	}
 }

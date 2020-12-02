@@ -50,7 +50,12 @@ public class RoomsPanel extends JPanel {
 	// let us submit the search via the enter key
 	search.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "sendAction");
 	search.getActionMap().put("sendAction", new AbstractAction() {
-	    public void actionPerformed(ActionEvent actionEvent) {
+	    /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent actionEvent) {
 		String query = search.getText();
 		// only search if the string isn't empty
 		if (!query.isEmpty()) {
@@ -68,7 +73,12 @@ public class RoomsPanel extends JPanel {
 	// trigger it on enter key
 	create.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "sendAction");
 	create.getActionMap().put("sendAction", new AbstractAction() {
-	    public void actionPerformed(ActionEvent actionEvent) {
+	    /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent actionEvent) {
 		String query = create.getText();
 		// send the request only if a value was entered
 		if (!query.isEmpty()) {
@@ -153,4 +163,4 @@ public class RoomsPanel extends JPanel {
 	SocketClient.INSTANCE.sendJoinRoom(room);
     }
 
-} 
+}
