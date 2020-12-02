@@ -15,6 +15,8 @@ public class Room implements AutoCloseable {
     private final static String COMMAND_TRIGGER = "/";
     private final static String CREATE_ROOM = "createroom";
     private final static String JOIN_ROOM = "joinroom";
+    private final static String ROLL = "roll";
+	private final static String FLIP = "flip";
 
     public Room(String name) {
 	this.name = name;
@@ -122,6 +124,21 @@ public class Room implements AutoCloseable {
 		    joinRoom(roomName, client);
 		    wasCommand = true;
 		    break;
+		case ROLL: 
+			String num = Integer.toString((int) ((Math.random() * 6) + 1));
+			sendMessage(client, "the number you rolled is "+ num );
+			wasCommand=true;
+			break;
+		case FLIP: 
+			int ranflip = (int) (Math.random() * 2);
+			if (ranflip == 0) {
+				sendMessage(client, " Heads ");
+			} else {
+				sendMessage(client, " Tails ");
+			}
+            wasCommand=true;
+			break;
+
 		}
 	    }
 	}
