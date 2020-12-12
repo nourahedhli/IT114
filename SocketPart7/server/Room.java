@@ -162,16 +162,17 @@ public class Room implements AutoCloseable {
 
 						}
 
-						alteredMessage = m;
-						sendMessage(client, alteredMessage);
+						
+						
 
 					}
+					alteredMessage = m;
 
 				}
 
 				if (alteredMessage.indexOf("*") > -1) {
 
-					String[] s1 = alteredMessage.split("*");
+					String[] s1 = alteredMessage.split("\\*");
 					String m = "";
 					for (int i = 0; i < s1.length; i++) {
 						if (i % 2 == 0) {
@@ -182,10 +183,11 @@ public class Room implements AutoCloseable {
 
 						}
 
-						alteredMessage = m;
-						sendMessage(client, alteredMessage);
+						
+						
 
 					}
+					alteredMessage = m;
 
 				}
 
@@ -202,14 +204,17 @@ public class Room implements AutoCloseable {
 
 						}
 
-						alteredMessage = m;
-						sendMessage(client, alteredMessage);
+						
+						
 
 					}
+					
+					alteredMessage = m;
 
 				}
 
 				response = alteredMessage;
+				System.out.println(alteredMessage);
 			}
 
 		}

@@ -135,7 +135,12 @@ public class ClientUI extends JFrame implements Event {
 	JButton button = new JButton("Send");
 	text.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "sendAction");
 	text.getActionMap().put("sendAction", new AbstractAction() {
-	    public void actionPerformed(ActionEvent actionEvent) {
+	    /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent actionEvent) {
 		button.doClick();
 	    }
 	});
@@ -213,6 +218,7 @@ public class ClientUI extends JFrame implements Event {
 
     void addMessage(String str) {
 	JEditorPane entry = new JEditorPane();
+	entry.setContentType("text/html");
 	entry.setEditable(false);
 	// entry.setLayout(null);
 	entry.setText(str);
