@@ -1,5 +1,8 @@
 package server;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -19,7 +22,8 @@ public class Room implements AutoCloseable {
 	private final static String FLIP = "flip";
 	private final static String MUTE = "mute";
 	private final static String UNMUTE = "unmute";
-	
+	private final static String PM = "pm";
+
 	public Room(String name) {
 		this.name = name;
 	}
@@ -97,7 +101,6 @@ public class Room implements AutoCloseable {
 		}
 	}
 
-	
 	private String processCommands(String message, ServerThread client) {
 
 		String response = null;
@@ -126,68 +129,138 @@ public class Room implements AutoCloseable {
 
 				case ROLL:
 					String num = Integer.toString((int) ((Math.random() * 6) + 1));
-					sendMessage(client, "the number you rolled is " + num);
+					sendMessage(client, "<b style=color:red>The number you rolled is:  </b>"  + num);
 
 					break;
 				case FLIP:
 					int ranflip = (int) (Math.random() * 2);
 					if (ranflip == 0) {
-						sendMessage(client, " Heads ");
+						String msg = "<b style=color:red>Heads </b>" ;
+						//String msg = "<b style=color:red>Heads </b>" ;
+						sendMessage(client, "Heads");
 					} else {
-						sendMessage(client, " Tails ");
+						//String msg1 = "<b style=color:red>Tails</b>" ;
+						sendMessage(client,"Tails");
 					}
 
 					break;
-					
+
 				case MUTE:
-					String[] splitMsg = message.split(" ");
 					
+					String[] splitMsg = message.split(" ");
+					//message should look something like: /mute Bob
 					String mutedClient = splitMsg[1];
-					mutedClient = mutedClient.trim();
 					client.mutedList.add(mutedClient);
 					
-					// send to client who is muted 
+					try {
+			    		String fileName = client.getClientName()+"MuteFile.txt";
+						File f = new File(fileName);
+						FileWriter fw = new FileWriter(fileName);
+						
+						if(f.createNewFile()) {
+							System.out.println("Created "+client.getClientName()+" mute file.");
+							for(String clientName: client.mutedList) {
+								fw.write(clientName + " ");
+							}
+							fw.close();
+						}else {
+							for(String clientName: client.mutedList) {
+								fw.write(clientName + " ");
+							}
+							fw.close();
+						}
+			
+					}catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+
+					// send to client who is muted
 					Iterator<ServerThread> iter = clients.iterator();
 					while (iter.hasNext()) {
 						ServerThread c = iter.next();
-						if (c.getClientName().equalsIgnoreCase(mutedClient)|| c.getClientName().equalsIgnoreCase(client.getClientName())) {
-							sendMessage(client,"muted "+mutedClient);
-						}
-						
-					}
+						if (c.getClientName().equalsIgnoreCase(mutedClient)
+								|| c.getClientName().equalsIgnoreCase(client.getClientName())) {
+							sendMessage(client, "muted " + mutedClient);
+						}}
+
 					
-					
+
 					break;
-					
+
 				case UNMUTE:
 					String[] splitmsg = message.split(" ");
-					
+
 					String unmutedClient = splitmsg[1];
 					unmutedClient = unmutedClient.trim();
 					// for loop to look for the name
-					for(String name : client.mutedList) {
-						if(name.equalsIgnoreCase(unmutedClient)) {
+					for (String name : client.mutedList) {
+						if (name.equalsIgnoreCase(unmutedClient)) {
 							// removing the name or basically not mute
 							client.mutedList.remove(unmutedClient);
-					
-					// send to client who is muted 
+
 							
-					Iterator<ServerThread> iter2 = clients.iterator();
-					while (iter2.hasNext()) {
-						ServerThread c = iter2.next();
-						if (c.getClientName().equalsIgnoreCase(unmutedClient)|| c.getClientName().equalsIgnoreCase(client.getClientName())) {
-							sendMessage(client,"unmuted "+unmutedClient);
+							try {
+					    		String fileName = client.getClientName()+"MuteFile.txt";
+								File f = new File(fileName);
+								FileWriter fw = new FileWriter(fileName);
+								
+								if(f.createNewFile()) {
+									System.out.println("Created "+client.getClientName()+" mute file.");
+									for(String clientName: client.mutedList) {
+										fw.write(clientName + " ");
+									}
+									fw.close();
+								}else {
+									for(String clientName: client.mutedList) {
+										fw.write(clientName + " ");
+									}
+									if(client.mutedList.isEmpty()) {
+										fw.write("");
+									}
+									fw.close();
+								}
+							}catch (IOException e) {
+								e.printStackTrace();
+							}
+							
+							// send to client who is muted
+
+							Iterator<ServerThread> iter2 = clients.iterator();
+							while (iter2.hasNext()) {
+								ServerThread c = iter2.next();
+								if (c.getClientName().equalsIgnoreCase(unmutedClient)
+										|| c.getClientName().equalsIgnoreCase(client.getClientName())) {
+									sendMessage(client, "unmuted " + unmutedClient);
+								}
+
+							}
+
+							break;
 						}
-						
 					}
-					
-					
-					break;
-						}}
+				case PM:
+
+					String clientName = "";
+					clientName = clientName.trim().toLowerCase();
+					List<String> clients = new ArrayList<String>();
+
+					if (message.indexOf("@") > -1) {
+						String[] words = message.split(" ");
+						for (String word : words) {
+							if ((word.charAt(0) == '@') && (word.charAt(1) != '@')) {
+								clients.add(word.substring(1).trim().toLowerCase());
+							}
+
+						}
+						sendPM(client, clients, message);
+						break;
+					}
 				}
 
 			}
 			// not a command BOLD Italic and underline
+
 			else {
 
 				String alteredMessage = message;
@@ -202,9 +275,6 @@ public class Room implements AutoCloseable {
 							m += "<b>" + s1[i] + "</b>";
 
 						}
-
-						
-						
 
 					}
 					alteredMessage = m;
@@ -224,9 +294,6 @@ public class Room implements AutoCloseable {
 
 						}
 
-						
-						
-
 					}
 					alteredMessage = m;
 
@@ -245,11 +312,8 @@ public class Room implements AutoCloseable {
 
 						}
 
-						
-						
-
 					}
-					
+
 					alteredMessage = m;
 
 				}
@@ -288,82 +352,61 @@ public class Room implements AutoCloseable {
 	 * @param message The message to broadcast inside the room
 	 */
 	protected synchronized void sendMessage(ServerThread sender, String message) {
-		//no broadcast 
+		// no broadcast
 		log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
 		String resp = processCommands(message, sender);
 		if (resp == null) {
-		  
-		    return;
+
+			return;
 		}
 		message = resp;
-	
+
 		Iterator<ServerThread> iter = clients.iterator();
 		while (iter.hasNext()) {
 			ServerThread client = iter.next();
 			if (!client.isMuted(sender.getClientName())) {
-			boolean messageSent = client.send(sender.getClientName(), message);
-			if (!messageSent) {
-				iter.remove();
-				log.log(Level.INFO, "Removed client " + client.getId());
-			}}
+				boolean messageSent = client.send(sender.getClientName(), message);
+				if (!messageSent) {
+					iter.remove();
+					log.log(Level.INFO, "Removed client " + client.getId());
+				}
+			}
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	protected boolean sendPM(ServerThread sender, String message) {
-    	boolean PrivateMessage = false;
-    	String receiver = null;
-    	
-    	if (message.indexOf("@") > -1) {
-			String[] words = message.split(" ");
-			for(String word: words){
-			    if ((word.charAt(0)=='@') && (word.charAt(1)!='@')){
-			        receiver = word.substring(1);
-			        PrivateMessage = true;
-			        
-			        
-			        Iterator<ServerThread> iter = clients.iterator();
-					while (iter.hasNext()) {
-						ServerThread client = iter.next();
-						if (client.getClientName().equalsIgnoreCase(receiver)) {
-							sendPrivateMessage(client,message);
-							
-						}
-					}
-			    }
+
+	protected synchronized void sendPM(ServerThread sender, List<String> dest, String message) {
+
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+			ServerThread client = iter.next();
+			if (dest.contains(client.getClientName().toLowerCase())) {
+				boolean messageSent = client.send(sender.getClientName(), message);
+
+				if (!messageSent) {
+					iter.remove();
+				}
+				break;
 			}
-			//sendMessage(client,"unmuted "+unmutedClient);
-			
+
 		}
-    	
-    	return PrivateMessage;
-    }
-	
-	
+
+	}
 
 	protected synchronized void sendPrivateMessage(ServerThread sender, String message) {
-		
-	
+
 		Iterator<ServerThread> iter = clients.iterator();
 		while (iter.hasNext()) {
 			ServerThread client = iter.next();
 			if (!client.isMuted(sender.getClientName())) {
-			boolean messageSent = client.send(sender.getClientName(), message);
-			if (!messageSent) {
-				iter.remove();
-				log.log(Level.INFO, "Removed client " + client.getId());
-			}}
+				boolean messageSent = client.send(sender.getClientName(), message);
+				if (!messageSent) {
+					iter.remove();
+					log.log(Level.INFO, "Removed client " + client.getId());
+				}
+			}
 		}
 	}
-	
-	
-	
-	
+
 	/***
 	 * Will attempt to migrate any remaining clients to the Lobby room. Will then
 	 * set references to null and should be eligible for garbage collection

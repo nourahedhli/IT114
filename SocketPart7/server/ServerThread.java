@@ -1,11 +1,18 @@
 package server;
-
+import java.util.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+
 
 public class ServerThread extends Thread {
     private Socket client;
@@ -16,6 +23,57 @@ public class ServerThread extends Thread {
     private String clientName;
     private final static Logger log = Logger.getLogger(ServerThread.class.getName());
 
+    public List <String> mutedList = new ArrayList<String>();
+
+    public boolean isMuted(String clientName) {
+    	for(String name: mutedList) {
+    		if (name.equals(clientName)){
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
+    protected synchronized void createMuteFile(String name) {
+    	try {
+    		String fileName = name+"MuteFile.txt";
+			File f = new File(fileName);
+			f.createNewFile();
+			FileWriter fw = new FileWriter(fileName);
+			
+			if(!mutedList.isEmpty()) {
+				System.out.println(mutedList.toString());
+				for(String clientName: mutedList) {
+					//System.out.println(clientName);
+					fw.write(clientName + " ");
+				}
+			}
+			fw.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    //will try to read from the muted file and add the names to the muted list
+    protected synchronized void readMuteFile(String name) {
+    	try {
+    		String fileName = name+"MuteFile.txt";
+    		File f = new File(fileName);
+    		Scanner scan = new Scanner(f);
+    		while (scan.hasNextLine()) {
+				String[] mutedClients = scan.nextLine().split(" ");
+				for(String client : mutedClients) {
+					mutedList.add(client);
+				}
+    		}
+    		scan.close();
+				
+    	}catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+    }
+    
     public String getClientName() {
 	return clientName;
     }
@@ -123,6 +181,7 @@ public class ServerThread extends Thread {
 	    String n = p.getClientName();
 	    if (n != null) {
 		clientName = n;
+		readMuteFile(n);
 		log.log(Level.INFO, "Set our name to " + clientName);
 		if (currentRoom != null) {
 		    currentRoom.joinLobby(this);
