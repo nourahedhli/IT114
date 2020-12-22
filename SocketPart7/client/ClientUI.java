@@ -8,6 +8,8 @@ import java.awt.FontMetrics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -238,6 +240,37 @@ public class ClientUI extends JFrame implements Event {
     void next() {
 	card.next(this.getContentPane());
     }
+    
+    void exportChat() {
+  	  //creating the chat history file
+  	  	try {
+  	  		File f = new File("chatHistory.txt");
+  	  		if(f.createNewFile()) {
+  	  			System.out.println("Chat history file created.");
+  	  		}else {
+  	  			System.out.println("Chat history file already exists.");
+  	  		}
+  	  	}catch (Exception e) { 
+  	          System.err.println(e); 
+  	    } 
+  	  //now that the chat history file is created, we can append all the components to a string builder
+  	  	StringBuilder sb = new StringBuilder();
+  	  	Component[] comps = textArea.getComponents();
+  	  	for(Component msg:comps) {
+  	  		JEditorPane jep = (JEditorPane)msg;
+  	  		if(jep!=null) {
+  	  			sb.append(jep.getText()+System.lineSeparator());
+  	  		}
+  	  	}
+  	  //now we must write the components to the file
+  	  	try {
+  			FileWriter fw = new FileWriter("chatHistory.txt");
+  			fw.write(sb.toString());
+  			fw.close();
+  		} catch (IOException e) {
+  			e.printStackTrace();
+  		}
+      }
 
     void previous() {
 	card.previous(this.getContentPane());
@@ -256,6 +289,14 @@ public class ClientUI extends JFrame implements Event {
 	userPanel.setMaximumSize(lock);
 	setVisible(true);
     }
+    
+    static void writeToFile(String file, String msg) {
+    	try (FileWriter writer = new FileWriter(file, true)) {
+			writer.write(msg);
+			writer.write(System.lineSeparator());
+		} catch (IOException e) {
+			e.printStackTrace();
+		} }
 
     @Override
     public void onClientConnect(String clientName, String message) {

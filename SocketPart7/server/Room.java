@@ -1,5 +1,8 @@
 package server;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -17,6 +20,9 @@ public class Room implements AutoCloseable {
 	private final static String JOIN_ROOM = "joinroom";
 	private final static String ROLL = "roll";
 	private final static String FLIP = "flip";
+	private final static String MUTE = "mute";
+	private final static String UNMUTE = "unmute";
+	private final static String PM = "pm";
 
 	public Room(String name) {
 		this.name = name;
@@ -95,13 +101,6 @@ public class Room implements AutoCloseable {
 		}
 	}
 
-	/***
-	 * Helper function to process messages to trigger different functionality.
-	 * 
-	 * @param message The original message being sent
-	 * @param client  The sender of the message (since they'll be the ones
-	 *                triggering the actions)
-	 */
 	private String processCommands(String message, ServerThread client) {
 
 		String response = null;
@@ -130,23 +129,140 @@ public class Room implements AutoCloseable {
 
 				case ROLL:
 					String num = Integer.toString((int) ((Math.random() * 6) + 1));
-					sendMessage(client, "the number you rolled is " + num);
-
+					//sendMessage(client, "<b style=color:red>The number you rolled is:  </b>"  + num);
+					//sendMessage(client, "The number you rolled is: "  + num);
+					//sendMessage(client, "The number you rolled is : "  + num);
+					response =  "<font color=red>The number you rolled is :  </font>"  + num;
 					break;
 				case FLIP:
 					int ranflip = (int) (Math.random() * 2);
 					if (ranflip == 0) {
-						sendMessage(client, " Heads ");
+						String msg = "<b style=color:red>Heads </b>" ;
+						//String msg = "<b style=color:red>Heads </b>" ;
+						response =  "<font color=red> Heads  </font>" ;
 					} else {
-						sendMessage(client, " Tails ");
+						//String msg1 = "<b style=color:red>Tails</b>" ;
+						response =  "<font color=red> Tails  </font>"  ;
 					}
 
 					break;
 
+				case MUTE:
+					
+					String[] splitMsg = message.split(" ");
+					//message should look something like: /mute Bob
+					String mutedClient = splitMsg[1];
+					client.mutedList.add(mutedClient);
+					
+					try {
+			    		String fileName = client.getClientName()+"MuteFile.txt";
+						File f = new File(fileName);
+						FileWriter fw = new FileWriter(fileName);
+						
+						if(f.createNewFile()) {
+							System.out.println("Created "+client.getClientName()+" mute file.");
+							for(String clientName: client.mutedList) {
+								fw.write(clientName + " ");
+							}
+							fw.close();
+						}else {
+							for(String clientName: client.mutedList) {
+								fw.write(clientName + " ");
+							}
+							fw.close();
+						}
+			
+					}catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+
+					// send to client who is muted
+					Iterator<ServerThread> iter = clients.iterator();
+					while (iter.hasNext()) {
+						ServerThread c = iter.next();
+						if (c.getClientName().equalsIgnoreCase(mutedClient)
+								|| c.getClientName().equalsIgnoreCase(client.getClientName())) {
+							sendMessage(client, "muted " + mutedClient);
+						}}
+
+					
+
+					break;
+
+				case UNMUTE:
+					String[] splitmsg = message.split(" ");
+
+					String unmutedClient = splitmsg[1];
+					unmutedClient = unmutedClient.trim();
+					// for loop to look for the name
+					for (String name : client.mutedList) {
+						if (name.equalsIgnoreCase(unmutedClient)) {
+							// removing the name or basically not mute
+							client.mutedList.remove(unmutedClient);
+
+							
+							try {
+					    		String fileName = client.getClientName()+"MuteFile.txt";
+								File f = new File(fileName);
+								FileWriter fw = new FileWriter(fileName);
+								
+								if(f.createNewFile()) {
+									System.out.println("Created "+client.getClientName()+" mute file.");
+									for(String clientName: client.mutedList) {
+										fw.write(clientName + " ");
+									}
+									fw.close();
+								}else {
+									for(String clientName: client.mutedList) {
+										fw.write(clientName + " ");
+									}
+									if(client.mutedList.isEmpty()) {
+										fw.write("");
+									}
+									fw.close();
+								}
+							}catch (IOException e) {
+								e.printStackTrace();
+							}
+							
+							// send to client who is muted
+
+							Iterator<ServerThread> iter2 = clients.iterator();
+							while (iter2.hasNext()) {
+								ServerThread c = iter2.next();
+								if (c.getClientName().equalsIgnoreCase(unmutedClient)
+										|| c.getClientName().equalsIgnoreCase(client.getClientName())) {
+									sendMessage(client, "unmuted " + unmutedClient);
+								}
+
+							}
+
+							break;
+						}
+					}
+				case PM:
+
+					String clientName = "";
+					clientName = clientName.trim().toLowerCase();
+					List<String> clients = new ArrayList<String>();
+
+					if (message.indexOf("@") > -1) {
+						String[] words = message.split(" ");
+						for (String word : words) {
+							if ((word.charAt(0) == '@') && (word.charAt(1) != '@')) {
+								clients.add(word.substring(1).trim().toLowerCase());
+							}
+
+						}
+						sendPM(client, clients, message);
+						break;
+					}
 				}
 
 			}
 			// not a command BOLD Italic and underline
+
 			else {
 
 				String alteredMessage = message;
@@ -161,9 +277,6 @@ public class Room implements AutoCloseable {
 							m += "<b>" + s1[i] + "</b>";
 
 						}
-
-						
-						
 
 					}
 					alteredMessage = m;
@@ -183,9 +296,6 @@ public class Room implements AutoCloseable {
 
 						}
 
-						
-						
-
 					}
 					alteredMessage = m;
 
@@ -204,11 +314,8 @@ public class Room implements AutoCloseable {
 
 						}
 
-						
-						
-
 					}
-					
+
 					alteredMessage = m;
 
 				}
@@ -246,23 +353,58 @@ public class Room implements AutoCloseable {
 	 * @param sender  The client sending the message
 	 * @param message The message to broadcast inside the room
 	 */
-	protected void sendMessage(ServerThread sender, String message) {
-		
+	protected synchronized void sendMessage(ServerThread sender, String message) {
+		// no broadcast
 		log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
 		String resp = processCommands(message, sender);
 		if (resp == null) {
-		    // it was a command, don't broadcast
-		    return;
+
+			return;
 		}
 		message = resp;
-	
+
 		Iterator<ServerThread> iter = clients.iterator();
 		while (iter.hasNext()) {
 			ServerThread client = iter.next();
-			boolean messageSent = client.send(sender.getClientName(), message);
-			if (!messageSent) {
-				iter.remove();
-				log.log(Level.INFO, "Removed client " + client.getId());
+			if (!client.isMuted(sender.getClientName())) {
+				boolean messageSent = client.send(sender.getClientName(), message);
+				if (!messageSent) {
+					iter.remove();
+					log.log(Level.INFO, "Removed client " + client.getId());
+				}
+			}
+		}
+	}
+
+	protected synchronized void sendPM(ServerThread sender, List<String> dest, String message) {
+
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+			ServerThread client = iter.next();
+			if (dest.contains(client.getClientName().toLowerCase())) {
+				boolean messageSent = client.send(sender.getClientName(), message);
+
+				if (!messageSent) {
+					iter.remove();
+				}
+				break;
+			}
+
+		}
+
+	}
+
+	protected synchronized void sendPrivateMessage(ServerThread sender, String message) {
+
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+			ServerThread client = iter.next();
+			if (!client.isMuted(sender.getClientName())) {
+				boolean messageSent = client.send(sender.getClientName(), message);
+				if (!messageSent) {
+					iter.remove();
+					log.log(Level.INFO, "Removed client " + client.getId());
+				}
 			}
 		}
 	}
