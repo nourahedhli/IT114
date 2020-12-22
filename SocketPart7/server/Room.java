@@ -131,17 +131,18 @@ public class Room implements AutoCloseable {
 					String num = Integer.toString((int) ((Math.random() * 6) + 1));
 					//sendMessage(client, "<b style=color:red>The number you rolled is:  </b>"  + num);
 					//sendMessage(client, "The number you rolled is: "  + num);
-					sendMessage(client, "<font color=red>The number you rolled is :  </font>"  + num);
+					//sendMessage(client, "The number you rolled is : "  + num);
+					response =  "<font color=red>The number you rolled is :  </font>"  + num;
 					break;
 				case FLIP:
 					int ranflip = (int) (Math.random() * 2);
 					if (ranflip == 0) {
 						String msg = "<b style=color:red>Heads </b>" ;
 						//String msg = "<b style=color:red>Heads </b>" ;
-						sendMessage(client, "Heads");
+						response =  "<font color=red> Heads  </font>" ;
 					} else {
 						//String msg1 = "<b style=color:red>Tails</b>" ;
-						sendMessage(client,"Tails");
+						response =  "<font color=red> Tails  </font>"  ;
 					}
 
 					break;
